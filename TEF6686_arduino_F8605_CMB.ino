@@ -1274,10 +1274,27 @@ void loop() {
           Serial.println(LevelOffset);
           break;
 
-        case 'W':  // Watch a frequency
-          watch_freq = atol(buff + 1);
-          Set_Cmd(32, 2, 0, 0, 1680, 1000, 2000);
-          Set_Cmd(32, 1, 2, 3, watch_freq / 10);
+        case 'W':  // Set IF bandwidth (Hz), 0 = auto
+          {
+            long bw_hz = atol(buff + 1);
+            if (bw_hz == 0) {
+              current_filter = -1;
+              Set_Cmd(32, 10, 4, 1, 0, 1000, 1000);
+            } else {
+              long bw_unit = bw_hz / 100;
+              int best = 0;
+              long best_diff = abs(bw_unit - (long)pgm_read_word_near(FMFilterMap));
+              for (int i = 1; i < 16; i++) {
+                long diff = abs(bw_unit - (long)pgm_read_word_near(FMFilterMap + i));
+                if (diff < best_diff) { best_diff = diff; best = i; }
+              }
+              current_filter = best;
+              int fw = pgm_read_word_near(FMFilterMap + current_filter);
+              Set_Cmd(32, 10, 4, 0, fw, 1000, 1000);
+            }
+            Serial.print('W');
+            Serial.println(bw_hz);
+          }
           break;
 
         case 'F':  // Change FIR filters (or poll if no argument)
