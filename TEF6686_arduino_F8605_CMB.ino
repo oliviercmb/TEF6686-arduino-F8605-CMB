@@ -1,4 +1,4 @@
-/*
+﻿/*
   by Eustake (marsel90)
   With this sketch it is recommended to use together with TEF-GTK v1.1.2
   changes:
@@ -1280,15 +1280,22 @@ void loop() {
           Set_Cmd(32, 1, 2, 3, watch_freq / 10);
           break;
 
-        case 'F':  // Change FIR filters
-          current_filter = atoi(buff + 1);
-          if (radio_mode == MODE_FM) {
-            Set_Cmd(32, 10, 4, current_filter == -1 ? 1 : 0, pgm_read_word_near(FMFilterMap + current_filter), 1000, 1000);
+        case 'F':  // Change FIR filters (or poll if no argument)
+          if (buff[1] == 0) {
+            // Poll only - return current filter without changing it
+            Serial.print('F');
+            Serial.println(current_filter);
           } else {
-            Set_Cmd(33, 10, 2, 0, pgm_read_byte_near(AMFilterMap + current_filter));
+            current_filter = atoi(buff + 1);
+            if (radio_mode == MODE_FM) {
+              int fw = (current_filter == -1) ? 0 : pgm_read_word_near(FMFilterMap + current_filter);
+              Set_Cmd(32, 10, 4, current_filter == -1 ? 1 : 0, fw, 1000, 1000);
+            } else {
+              Set_Cmd(33, 10, 2, 0, pgm_read_byte_near(AMFilterMap + current_filter));
+            }
+            Serial.print('F');
+            Serial.println(buff + 1);
           }
-          Serial.print('F');
-          Serial.println(buff + 1);
           break;
 
         case 'V':
