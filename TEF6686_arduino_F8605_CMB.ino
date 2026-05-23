@@ -1217,7 +1217,7 @@ void loop() {
             if (Filter_AM != 16) { Filter_AM = current_filter; }
             if (Filter_FM == 16) { Filter_FM = -1; }
             current_filter = Filter_FM;
-            Set_Cmd(32, 10, 4, current_filter == -1 ? 1 : 0, pgm_read_word_near(FMFilterMap + current_filter), 1000, 1000);
+            { int fw = (current_filter == -1) ? 0 : pgm_read_word_near(FMFilterMap + current_filter); Set_Cmd(32, 10, 4, current_filter == -1 ? 1 : 0, fw, 1000, 1000); }
             radio_mode = MODE_FM;
           } else {
             if (MODA_FREQ == 0) { MODA_FREQ = 558; }
@@ -1250,7 +1250,7 @@ void loop() {
               if (Filter_AM != 16) { Filter_AM = current_filter; }
               if (Filter_FM == 16) { Filter_FM = -1; }
               current_filter = Filter_FM;
-              Set_Cmd(32, 10, 4, current_filter == -1 ? 1 : 0, pgm_read_word_near(FMFilterMap + current_filter), 1000, 1000);
+              { int fw = (current_filter == -1) ? 0 : pgm_read_word_near(FMFilterMap + current_filter); Set_Cmd(32, 10, 4, current_filter == -1 ? 1 : 0, fw, 1000, 1000); }
             }
             radio_mode = MODE_FM;
             MODF_FREQ = REG_FREQ;
