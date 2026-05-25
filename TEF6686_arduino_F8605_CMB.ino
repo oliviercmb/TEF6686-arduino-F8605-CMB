@@ -1345,42 +1345,25 @@ void loop() {
           Serial.println(nDeemphasis);
           break;
 
-        case 'G':
-          Serial.print('G');
+        case 'G':  // EQ + iMS (buff[1]=EQ, buff[2]=iMS)
+          {
+            int eq  = buff[1] - 48;
+            int ims = buff[2] - 48;
+            Set_Cmd(32, 22, 1, eq);   // ChannelEqualizer
+            Set_Cmd(32, 20, 1, ims);  // MphSuppression
+            Serial.print('G');
+            Serial.print(eq);
+            Serial.println(ims);
+          }
+          break;
+
+        case 'C':  // RF+IF gain (legacy, remapped from G)
+          Serial.print('C');
           RFplus = buff[1] - 48;
           IFplus = buff[2] - 48;
           Set_IF_RF(RFplus, IFplus);
           Serial.print(RFplus);
           Serial.println(IFplus);
-          break;
-
-        case 'A':  // AGC  (check what levelstepping does)
-          Serial.print('A');
-          AGC_tress = atoi(buff + 1);
-          Set_AGC_tresshold(AGC_tress);
-          Serial.println(AGC_tress);
-          break;
-
-        case 'C':
-          Serial.print('C');
-          if (buff[1] == '0') {
-            Set_Cmd(32, 22, 1, 1);  //ChannelEqualizer (EQ 1)
-            Set_Cmd(32, 20, 1, 1);  //MphSuppression (iMS 1)
-            Serial.print("0");
-          } else if (buff[1] == '1') {
-            Set_Cmd(32, 22, 1, 0);  //ChannelEqualizer (EQ 0)
-            Set_Cmd(32, 20, 1, 1);  //MphSuppression (iMS 1)
-            Serial.print("1");
-          } else if (buff[1] == '2') {
-            Set_Cmd(32, 22, 1, 1);  //ChannelEqualizer (EQ 1)
-            Set_Cmd(32, 20, 1, 0);  //MphSuppression (iMS 0)
-            Serial.print("2");
-          } else if (buff[1] == '3') {
-            Set_Cmd(32, 22, 1, 0);  //ChannelEqualizer (EQ 0)
-            Set_Cmd(32, 20, 1, 0);  //MphSuppression (iMS 0)
-            Serial.print("3");
-          }
-          Serial.print('\n');
           break;
 
         case 'Z':
