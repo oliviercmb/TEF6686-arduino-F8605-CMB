@@ -1212,9 +1212,9 @@ void loop() {
           if (mode == 0) {
             if (MODF_FREQ == 0) { MODF_FREQ = 87500; }
             Set_Cmd(32, 1, 2, 1, MODF_FREQ / 10);
-            Serial.println("M0");
+            Serial.print("M0"); Serial.print('\n');
             Serial.print('T');
-            Serial.println(MODF_FREQ);
+            Serial.print(MODF_FREQ); Serial.print('\n');
             if (Filter_AM != 16) { Filter_AM = current_filter; }
             if (Filter_FM == 16) { Filter_FM = -1; }
             current_filter = Filter_FM;
@@ -1223,9 +1223,9 @@ void loop() {
           } else {
             if (MODA_FREQ == 0) { MODA_FREQ = 558; }
             Set_Cmd(33, 1, 2, 1, MODA_FREQ);
-            Serial.println("M1");
+            Serial.print("M1"); Serial.print('\n');
             Serial.print('T');
-            Serial.println(MODA_FREQ);
+            Serial.print(MODA_FREQ); Serial.print('\n');
             Filter_FM = current_filter;
             if (Filter_FM != 16) { Filter_FM = current_filter; }
             if (Filter_AM == 16) { Filter_AM = 1; }
@@ -1234,9 +1234,9 @@ void loop() {
             radio_mode = MODE_AM;
           }
           Serial.print('F');
-          Serial.println(current_filter);
+          Serial.print(current_filter); Serial.print('\n');
           Serial.print('V');
-          Serial.println(LevelOffset);
+          Serial.print(LevelOffset); Serial.print('\n');
           break;
 
         case 'T':  // Tune to a frequency (to do keep filter settings)
@@ -1244,9 +1244,9 @@ void loop() {
           REG_FREQ = freq;
           if ((REG_FREQ >= 65000) && (REG_FREQ <= 108000)) {
             Set_Cmd(32, 1, 2, 4, REG_FREQ / 10);
-            Serial.println("M0");
+            Serial.print("M0"); Serial.print('\n');
             Serial.print('T');
-            Serial.println(REG_FREQ);
+            Serial.print(REG_FREQ); Serial.print('\n');
             if (radio_mode == MODE_AM) {  // from AM to FM then switch to adaptive filter AUTO in TEF-GTK
               if (Filter_AM != 16) { Filter_AM = current_filter; }
               if (Filter_FM == 16) { Filter_FM = -1; }
@@ -1257,9 +1257,9 @@ void loop() {
             MODF_FREQ = REG_FREQ;
           } else if ((REG_FREQ >= 144) && (REG_FREQ <= 26999)) {
             Set_Cmd(33, 1, 2, 1, REG_FREQ);
-            Serial.println("M1");
+            Serial.print("M1"); Serial.print('\n');
             Serial.print('T');
-            Serial.println(REG_FREQ);
+            Serial.print(REG_FREQ); Serial.print('\n');
             if (radio_mode == MODE_FM) {  // from FM to AM then use filter 1 -> 4khz
               if (Filter_FM != 16) { Filter_FM = current_filter; }
               if (Filter_AM == 16) { Filter_AM = 1; }
@@ -1270,9 +1270,9 @@ void loop() {
             MODA_FREQ = REG_FREQ;
           }
           Serial.print('F');
-          Serial.println(current_filter);
+          Serial.print(current_filter); Serial.print('\n');
           Serial.print('V');
-          Serial.println(LevelOffset);
+          Serial.print(LevelOffset); Serial.print('\n');
           break;
 
         case 'W':  // Set IF bandwidth (Hz), 0 = auto
@@ -1294,7 +1294,7 @@ void loop() {
               Set_Cmd(32, 10, 4, 0, fw, 1000, 1000);
             }
             Serial.print('W');
-            Serial.println(bw_hz);
+            Serial.print(bw_hz); Serial.print('\n');
           }
           break;
 
@@ -1302,7 +1302,7 @@ void loop() {
           if (buff[1] == 0) {
             // Poll only - return current filter without changing it
             Serial.print('F');
-            Serial.println(current_filter);
+            Serial.print(current_filter); Serial.print('\n');
           } else {
             current_filter = atoi(buff + 1);
             if (radio_mode == MODE_FM) {
@@ -1312,7 +1312,7 @@ void loop() {
               Set_Cmd(33, 10, 2, 0, pgm_read_byte_near(AMFilterMap + current_filter));
             }
             Serial.print('F');
-            Serial.println(buff + 1);
+            Serial.print(buff + 1); Serial.print('\n');
           }
           break;
 
@@ -1325,7 +1325,7 @@ void loop() {
           LevelA = map(AudioLevel, 0, 127, 0, 60);
           if (radio_mode == MODE_FM) { Set_Cmd(32, 80, 1, LevelA); }  // Set +6dB analog radio sound gain (in TEF-GTK enable Show antenna input alignment - NO AM)
           Serial.print('V');
-          Serial.println(buff + 1);
+          Serial.print(buff + 1); Serial.print('\n');
           break;
 
         case 'Q':  // Audio volume scaler
@@ -1334,7 +1334,7 @@ void loop() {
             int Setsquelch = map(Squelch, 0, 100, -120, 60);
             Set_Cmd(33, 80, 1, Setsquelch);
             Serial.print("Q");
-            Serial.println(Squelch);
+            Serial.print(Squelch); Serial.print('\n');
           }
           break;
 
@@ -1342,7 +1342,7 @@ void loop() {
           nDeemphasis = atoi(buff + 1);
           Serial.print("D");
           Set_Deempasis(nDeemphasis);
-          Serial.println(nDeemphasis);
+          Serial.print(nDeemphasis); Serial.print('\n');
           break;
 
         case 'G':  // EQ + iMS (buff[1]=EQ, buff[2]=iMS)
@@ -1353,7 +1353,7 @@ void loop() {
             Set_Cmd(32, 20, 1, ims);  // MphSuppression
             Serial.print('G');
             Serial.print(eq);
-            Serial.println(ims);
+            Serial.print(ims); Serial.print('\n');
           }
           break;
 
@@ -1363,7 +1363,7 @@ void loop() {
           IFplus = buff[2] - 48;
           Set_IF_RF(RFplus, IFplus);
           Serial.print(RFplus);
-          Serial.println(IFplus);
+          Serial.print(IFplus); Serial.print('\n');
           break;
 
         case 'Z':
@@ -1392,7 +1392,7 @@ void loop() {
         case 'X':  // shutdown
           Set_Cmd(64, 1, 1, 1);
           TWCR = 0;  // Release SDA and SCL lines used by hardware I2C
-          Serial.println("X");
+          Serial.print("X"); Serial.print('\n');
           delay(10);
           asm("jmp 0");
           break;
