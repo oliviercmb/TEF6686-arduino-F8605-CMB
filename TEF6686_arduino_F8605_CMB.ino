@@ -1040,7 +1040,7 @@ void Set_Deempasis(uint8_t val) {
 
 void setup() {
   Wire.begin();
-  Wire.setClock(100000);
+  Wire.setClock(400000);
   Serial.begin(115200);
   delay(40);
   int16_t uState;
