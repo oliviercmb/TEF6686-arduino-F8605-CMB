@@ -925,7 +925,8 @@ void scan(bool continous) {
     for (freq = scan_start; freq <= scan_end; freq += scan_step) {
       Set_Cmd(scan_mode == 0 ? 32 : 33, 1, 2, 1, freq);
       int16_t uQuality[4] = { 0 };
-      delay(10);
+      delayMicroseconds(50);  // I2C stop-to-start guard (NXP V205)
+      delay(2);
       Get_Cmd(scan_mode == 0 ? 32 : 33, 128, uQuality, 4);
       if (!firstEntry) Serial.print(',');
       Serial.print(scan_mode == 0 ? freq * 10 : freq, DEC);
@@ -1038,6 +1039,7 @@ void Set_Deempasis(uint8_t val) {
 
 void setup() {
   Wire.begin();
+  Wire.setClock(100000);
   Serial.begin(115200);
   delay(40);
   int16_t uState;
