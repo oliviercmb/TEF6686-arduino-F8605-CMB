@@ -914,16 +914,16 @@ void scan(bool continous) {
   }
 
   if (scan_mode == 0) {
-    Set_Cmd(32, 1, 2, 1, scan_start);
+    Set_Cmd(32, 1, 2, 2, scan_start);  // Search: mute chip for entire sweep
   } else {
     Set_Cmd(33, 10, 2, scan_filter == -1 ? 1 : 0, pgm_read_byte_near(AMFilterMap + scan_filter));
-    Set_Cmd(33, 1, 2, 1, scan_start);
+    Set_Cmd(33, 1, 2, 2, scan_start);  // Search
   }
   do {
     Serial.print('U');
     bool firstEntry = true;
     for (freq = scan_start; freq <= scan_end; freq += scan_step) {
-      Set_Cmd(scan_mode == 0 ? 32 : 33, 1, 2, 1, freq);
+      Set_Cmd(scan_mode == 0 ? 32 : 33, 1, 2, 2, freq);  // Search: instant retune (mute already active)
       int16_t uQuality[4] = { 0 };
       delayMicroseconds(50);  // I2C stop-to-start guard (NXP V205)
       delay(2);
