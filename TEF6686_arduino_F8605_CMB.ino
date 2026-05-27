@@ -919,6 +919,7 @@ void scan(bool continous) {
     Set_Cmd(33, 10, 2, scan_filter == -1 ? 1 : 0, pgm_read_byte_near(AMFilterMap + scan_filter));
     Set_Cmd(33, 1, 2, 2, scan_start);  // Search
   }
+  delay(10);  // let detectors settle before first read
   do {
     Serial.print('U');
     bool firstEntry = true;
