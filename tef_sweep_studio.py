@@ -91,6 +91,9 @@ def build_plot():
 
 # ── main ──────────────────────────────────────────────────────────────────────
 
+import os, pathlib
+pathlib.Path("studio.pid").write_text(str(os.getpid()))
+
 print(f"Opening {PORT} at {BAUD} baud...")
 ser = serial.Serial(PORT, BAUD, timeout=15)
 print("Handshake...")
@@ -140,4 +143,5 @@ except KeyboardInterrupt:
 finally:
     stop_event.set()
     ser.close()
+    pathlib.Path("studio.pid").unlink(missing_ok=True)
     print("Done.")
