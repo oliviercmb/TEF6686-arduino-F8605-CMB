@@ -23,7 +23,8 @@ This fork closes the loop: a TEF6686 firmware in full protocol compliance with a
 ### Protocol — XDR-GTK compatibility
 - `W` command remapped to IF bandwidth control (Hz), 0 = auto
 - `G` command remapped to EQ + iMS (per XDR-GTK protocol)
-- `C` command remapped to RF+IF gain (legacy)
+- `A` command restored: AGC threshold (0=highest … 3=low)
+- `C` command remapped to RF+IF gain (legacy, dead code in normal TEF mode)
 - `F` command: distinguishes poll (no argument) vs set
 - `I` command added: reads chip identification (type, HW rev, FW version)
 - `T` command: OOB access on `FMFilterMap[-1]` fixed
@@ -53,6 +54,16 @@ This fork closes the loop: a TEF6686 firmware in full protocol compliance with a
 | 5 ms | ~1328 ms | OK |
 | **4 ms (current)** | **~1125 ms** | **OK** |
 | 3 ms | ~917 ms | too wide |
+
+> **Note:** the TEF6686 level detector (cmd 128) uses a fixed internal measurement bandwidth
+> in Search mode — independent of the configurable IF filter (cmd 10). The 56 kHz filter affects
+> the audio/demodulation path only; the RSSI measurement bandwidth is a hardware property of the chip.
+
+### Tools
+- `tef_sweep_studio.py` — live FM spectrum visualiser (matplotlib, threaded serial)
+- `sweep_studio.bat` / `kill_studio.bat` — launch and stop the studio
+- `scan_compare_filter.py` — compare scan with narrow vs wide IF filter
+- `scan_compare_delay.py` — scan stability check over multiple passes
 
 ## Hardware
 
