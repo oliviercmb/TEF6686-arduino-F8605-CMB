@@ -926,11 +926,9 @@ void scan(bool continous) {
     for (freq = scan_start; freq <= scan_end; freq += scan_step) {
       Set_Cmd(scan_mode == 0 ? 32 : 33, 1, 2, 2, freq);  // Search: instant retune (mute already active)
       int16_t uQuality[4] = { 0 };
-      uint32_t t0 = millis();
-      do {
-        delayMicroseconds(50);  // I2C stop-to-start guard (NXP V205)
-        Get_Cmd(scan_mode == 0 ? 32 : 33, 128, uQuality, 4);
-      } while (!(uQuality[0] & 0x8000) && (millis() - t0) < 8);
+      delayMicroseconds(50);  // I2C stop-to-start guard (NXP V205)
+      delay(5);
+      Get_Cmd(scan_mode == 0 ? 32 : 33, 128, uQuality, 4);
       if (!firstEntry) Serial.print(',');
       Serial.print(scan_mode == 0 ? freq * 10 : freq, DEC);
       Serial.print('=');
