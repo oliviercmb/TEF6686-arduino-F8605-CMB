@@ -926,6 +926,7 @@ void scan(bool continous) {
     bool firstEntry = true;
     for (freq = scan_start; freq <= scan_end; freq += scan_step) {
       Set_Cmd(scan_mode == 0 ? 32 : 33, 1, 2, 3, freq);  // AF_Update: measure + set bit 15, stays muted
+      if (scan_mode == 0) Set_Cmd(32, 10, 4, 0, pgm_read_word_near(FMFilterMap), 1000, 1000);  // 56 kHz during measurement
       int16_t uQuality[4] = { 0 };
       uint32_t t0 = millis();
       do {
