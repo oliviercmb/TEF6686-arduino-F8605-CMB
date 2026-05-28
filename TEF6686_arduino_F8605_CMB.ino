@@ -925,14 +925,11 @@ void scan(bool continous) {
     Serial.print('U');
     bool firstEntry = true;
     for (freq = scan_start; freq <= scan_end; freq += scan_step) {
-      Set_Cmd(scan_mode == 0 ? 32 : 33, 1, 2, 3, freq);  // AF_Update: measure + set bit 15, stays muted
-      if (scan_mode == 0) Set_Cmd(32, 10, 4, 0, pgm_read_word_near(FMFilterMap), 1000, 1000);  // 56 kHz during measurement
+      Set_Cmd(scan_mode == 0 ? 32 : 33, 1, 2, 2, freq);  // Search: instant retune (mute already active)
       int16_t uQuality[4] = { 0 };
-      uint32_t t0 = millis();
-      do {
-        delayMicroseconds(50);  // I2C stop-to-start guard (NXP V205)
-        Get_Cmd(scan_mode == 0 ? 32 : 33, 128, uQuality, 4);
-      } while (!(uQuality[0] & 0x8000) && (millis() - t0) < 8);
+      delayMicroseconds(50);  // I2C stop-to-start guard (NXP V205)
+      delay(3);
+      Get_Cmd(scan_mode == 0 ? 32 : 33, 128, uQuality, 4);
       if (!firstEntry) Serial.print(',');
       Serial.print(scan_mode == 0 ? freq * 10 : freq, DEC);
       Serial.print('=');
