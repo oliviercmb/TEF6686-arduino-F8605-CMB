@@ -1,76 +1,81 @@
-# Optimisation vitesse spectrum sweep — TEF6686
+# FM Sweep Speed Optimisation — TEF6686
 
-## Problème identifié
+## Problem
 
-Fichier : `TEF6686_arduino_F8605_CMB.ino`, fonction `scan()` ligne 903.
+File: `TEF6686_arduino_F8605_CMB.ino`, function `scan()` around line 903.
 
 ```cpp
 Set_Cmd(scan_mode == 0 ? 32 : 33, 1, 2, 1, freq);
-delay(10);  // ← coupable ligne 928
+delay(10);  // ← culprit, line 928
 Get_Cmd(scan_mode == 0 ? 32 : 33, 128, uQuality, 4);
 ```
 
-Sur bande FM Europe (87.5–108 MHz, pas 100 kHz = 206 fréquences) :
-- 206 × 10 ms = ~2 s rien que pour les delays
-- + transactions I²C à 100 kHz (défaut Arduino Nano)
+Over the European FM band (87.5–108 MHz, 100 kHz step = 206 frequencies):
+- 206 × 10 ms = ~2 s in delays alone
+- Plus I²C transactions at 100 kHz (Arduino Nano default)
 
 ---
 
-## Leviers d'optimisation
+## Optimisation levers
 
-### 1. Contrainte I²C à 400 kHz — délai 50 µs obligatoire (V205)
+### 1. I²C at 400 kHz — mandatory 50 µs guard (V205)
 
-La doc V205 (§5.6) documente une contrainte absente du manuel V102 :
-**50 µs minimum** entre la fin d'une transaction write et le début d'une transaction read.
+The V205 manual (§5.6) documents a constraint absent from V102:
+**50 µs minimum** between the end of a write transaction and the start of a read transaction.
 
-Deux solutions :
-- **Option A** : rester à ≤ 184 kHz — garantit le setup time sans délai supplémentaire
-- **Option B** : passer à 400 kHz + ajouter `delayMicroseconds(27)` entre le stop write et le start read
+Two options:
+- **Option A**: stay at ≤ 184 kHz — setup time satisfied without extra delay
+- **Option B**: use 400 kHz + add `delayMicroseconds(27)` between the write stop and read start
 
 ```cpp
 Wire.setClock(400000);
-// entre Set_Cmd et Get_Cmd :
-delayMicroseconds(27);  // garantit les 50 µs requis
+// between Set_Cmd and Get_Cmd:
+delayMicroseconds(27);  // ensures the required 50 µs
 ```
 
-> Sans ce délai à 400 kHz, les lectures peuvent retourner `0x0000` ou `0xFFF8` (erreur).
+> Without this guard at 400 kHz, reads may return `0x0000` or `0xFFF8` (bus error).
 
-### 2. Réduction du delay(10)
+### 2. Reducing delay(10)
 
-Le `delay(10)` est empirique — aucune valeur minimale n'est documentée dans le manuel V102.
+The `delay(10)` is empirical — no minimum value is documented in the V102 manual.
 
-La doc V205 (§4.1.1) donne les éléments suivants pour calibrer :
-- Un cycle **AF_Update complet** (mode=3) se termine en **6 ms** incluant mute/démute
-- Le temps de mesure interne AF_Update est de **2 ms** (75% settling détecteur offset)
-- Pour Search (mode=2) : pas de valeur chiffrée, mais le chip reste muté — les détecteurs
-  n'ont pas besoin de converger complètement pour un sweep RSSI
+The V205 manual (§4.1.1) provides the following reference values:
+- A complete **AF_Update cycle** (mode=3) finishes in **6 ms** including mute/demute
+- The internal AF_Update measurement time is **2 ms** (75% settling of the offset detector)
+- For Search (mode=2): no specific figure, but the chip stays muted — detectors do not need
+  to fully converge for an RSSI-only sweep
 
-Pour un sweep spectre (RSSI uniquement), tester par paliers :
+For a spectrum sweep (RSSI only), test in steps:
 ```
 10 ms → 7 ms → 5 ms → 3 ms → 2 ms
 ```
-Valider que `uQuality[1]` (RSSI) est stable et cohérent à chaque palier.
+Validate that `uQuality[1]` (RSSI) is stable and consistent at each step.
 
-### 3. Get_Quality_Status vs Get_Quality_Data (V205 uniquement)
+### 3. Get_Quality_Status vs Get_Quality_Data (V205 only)
 
-En V205, deux commandes distinctes :
-- **cmd 128 `Get_Quality_Status`** — retourne status + données, sans flush des données AF_Update
-- **cmd 129 `Get_Quality_Data`** — retourne status + données, flush après lecture
+V205 defines two distinct commands:
+- **cmd 128 `Get_Quality_Status`** — returns status + data, does not flush AF_Update data
+- **cmd 129 `Get_Quality_Data`** — returns status + data, flushes after read
 
-Pour un sweep : utiliser **cmd 128** (déjà le cas dans le code actuel — correct).
+For a sweep: use **cmd 128** (already the case in the current code — correct).
 
-### 4. Vitesse I²C (indépendant du délai)
+### 4. Search mode (mode=2) vs Preset (mode=1)
 
-Ajouter dans `setup()` :
+The original code used mode=1 (Preset) for each step of the sweep. Preset triggers a 10 ms mute
+slope and resets the detectors at every frequency — with 206 steps this causes mute/demute churn
+and leaves the chip in an unstable state at the end of the scan.
+
+Mode=2 (Search) keeps the chip muted throughout the entire sweep: no slope overhead, instant
+retune at each step, and a clean single Preset at the end to restore normal operation.
+
 ```cpp
-Wire.setClock(400000);
+Set_Cmd(32, 1, 2, 2, scan_start);   // Search: mute chip for entire sweep
+Set_Cmd(scan_mode == 0 ? 32 : 33, 1, 2, 2, freq);  // instant retune per step
 ```
-Le TEF668X supporte 400 kHz (User Manual V102 §2.1, V205 §5.6).
-Réduction du temps de chaque transaction I²C, cumulable avec les autres optimisations.
 
 ---
 
-## Baseline à mesurer avant toute modif
+## Baseline measurement
 
 ```cpp
 uint32_t t0 = millis();
@@ -80,25 +85,38 @@ Serial.println(millis() - t0);
 
 ---
 
-## Résumé des timings documentés (V205)
+## Results
 
-| Action | Timing documenté |
-|--------|-----------------|
+| Configuration | Sweep time (87.5–108 MHz) |
+|---------------|--------------------------|
+| Baseline (mode=1, delay=10ms, I²C 100kHz) | ~2616 ms |
+| Optimised (mode=2, delay=5ms, I²C 400kHz) | ~1335 ms |
+| **Gain** | **×2.0** |
+
+Validated on hardware (TEF6686 F8605 Lithio HW 2.2 / FW 5.00, Arduino Nano, COM1).
+No RSSI artifacts at delay=5ms; deviation < 1 dBµV vs live cmd-129 readings at strong stations.
+
+---
+
+## Documented timings (V205)
+
+| Action | Documented timing |
+|--------|------------------|
 | Preset mute FM | ~32 ms |
 | Preset mute AM | ~60 ms |
-| Search/Preset mute slope | 10 ms (si mute inactif) / 0 ms (si déjà muté) |
-| AF_Update cycle complet | 6 ms |
-| AF_Update mesure qualité | 2 ms (75% settling offset) |
+| Search/Preset mute slope | 10 ms (if not already muted) / 0 ms (if already muted) |
+| AF_Update full cycle | 6 ms |
+| AF_Update quality measurement | 2 ms (75% offset detector settling) |
 | Jump/Check/AF_Update mute slope | 1 ms |
 | Check mute minimum (End) | ~16 ms |
-| Changement de bande FM↔AM | +15 ms max |
-| Délai read après write à 400 kHz | 50 µs min (27 µs délai suffit) |
+| FM↔AM band change | +15 ms max |
+| Read delay after write at 400 kHz | 50 µs min (27 µs added delay sufficient) |
 
 ---
 
 ## Notes
-- User Manual V102 : `UserManual_TEF668X_V102.pdf`
-- User Manual V205 : `UM_Radio_TEF668XA_V205-1.pdf`
-- `uQuality[1]` = LEVEL (RSSI ×10, donc `/10` pour avoir dBµV)
-- Mode 2 (Search) utilisé correctement — chip reste muté, pas de reset détecteurs entre chaque pas
-- Les timings ci-dessus sont issus du manuel V205 ; le V102 ne documente pas ces valeurs
+- User Manual V102: `UserManual_TEF668X_V102.pdf`
+- User Manual V205: `UM_Radio_TEF668XA_V205-1.pdf`
+- `uQuality[1]` = LEVEL (RSSI ×10, divide by 10 to get dBµV)
+- Mode 2 (Search) keeps chip muted — no detector reset between steps
+- Timings above are from the V205 manual; V102 does not document these values
