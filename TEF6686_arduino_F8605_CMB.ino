@@ -1341,6 +1341,13 @@ void loop() {
           }
           break;
 
+        case 'A':  // AGC threshold (0=highest 1=high 2=medium 3=low)
+          AGC_tress = atoi(buff + 1);
+          Set_AGC_tresshold(AGC_tress);
+          Serial.print('A');
+          Serial.print(AGC_tress); Serial.print('\n');
+          break;
+
         case 'D':  // Change the de-emphasis
           nDeemphasis = atoi(buff + 1);
           Serial.print("D");
