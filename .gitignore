@@ -1,0 +1,29 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Scripts de test/mesure
+scan_baseline.py
+scan_sweep_delay.py
+scan_sweep_delay_fixed.py
+serial_listen.py
+tune_measure.py
+
+# NXP documentation (ne pas distribuer)
+*.pdf
+UM_V205.txt
+
+# Arduino build artifacts
+build/
+*.elf
+*.hex
+*.map
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+*.swp
