@@ -914,7 +914,6 @@ void scan(bool continous) {
   }
 
   if (scan_mode == 0) {
-    Set_Cmd(32, 10, 4, 0, pgm_read_word_near(FMFilterMap), 1000, 1000);  // narrowest filter (56 kHz) for scan
     Set_Cmd(32, 1, 2, 2, scan_start);  // Search: mute chip for entire sweep
   } else {
     Set_Cmd(33, 10, 2, scan_filter == -1 ? 1 : 0, pgm_read_byte_near(AMFilterMap + scan_filter));
@@ -926,7 +925,6 @@ void scan(bool continous) {
     bool firstEntry = true;
     for (freq = scan_start; freq <= scan_end; freq += scan_step) {
       Set_Cmd(scan_mode == 0 ? 32 : 33, 1, 2, 2, freq);  // Search: instant retune (mute already active)
-      if (scan_mode == 0) Set_Cmd(32, 10, 4, 0, pgm_read_word_near(FMFilterMap), 1000, 1000);  // restore 56 kHz after retune
       int16_t uQuality[4] = { 0 };
       delayMicroseconds(50);  // I2C stop-to-start guard (NXP V205)
       delay(3);
