@@ -4,11 +4,19 @@ Arduino firmware for the NXP TEF6686 (F8605) FM/AM receiver chip, compatible wit
 
 ## Credits
 
+### Firmware
+
 This firmware is a fork of the work by:
 
 - **Eustake (marsel90)** — original sketch, F8602/F8605 compatibility, MPX output, iMS/EQ support
 - **VoXiTPro** — filter switching, stereo control, AGC improvements, signal measurement
 - FMDXklaas, ODJeetje and others for testing and improvements
+
+### XDR-GTK protocol
+
+The serial protocol implemented here follows [XDR-GTK](https://github.com/kkonradpl/xdr-gtk) by **kkonradpl** (Konrad Kosmatka).
+XDR-GTK itself originated from earlier work by **oliviercmb** — this fork closes the loop, bringing
+a TEF6686 firmware into full protocol compliance with a tool that grew from the same source.
 
 ## Changes in this fork (oliviercmb / F8605-CMB)
 
