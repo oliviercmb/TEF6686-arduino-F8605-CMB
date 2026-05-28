@@ -15,7 +15,7 @@ This firmware is a fork of the work by:
 ### XDR-GTK protocol
 
 The serial protocol implemented here follows [XDR-GTK](https://github.com/kkonradpl/xdr-gtk) by **kkonradpl** (Konrad Kosmatka).
-XDR-GTK was originally built around the Sony **XDR-F1HD** tuner — a platform that **oliviercmb** also worked on.
+XDR-GTK was originally built around the Sony **XDR-F1HD** tuner — a platform that **Olivier Guillaume (oliviercmb)** also worked on.
 This fork closes the loop: a TEF6686 firmware in full protocol compliance with a tool that shares the same roots.
 
 ## Changes in this fork (oliviercmb / F8605-CMB)
