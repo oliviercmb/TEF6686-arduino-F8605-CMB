@@ -53,7 +53,7 @@ def parse_scan(line: bytes) -> dict:
     for entry in line[1:].split(b","):
         try:
             f, r = entry.split(b"=")
-            freq_mhz = int(f) / 1e6          # internal units are freq*10 Hz -> MHz
+            freq_mhz = int(f) / 1000          # U values are in kHz -> MHz
             result[freq_mhz] = int(r)
         except ValueError:
             pass
