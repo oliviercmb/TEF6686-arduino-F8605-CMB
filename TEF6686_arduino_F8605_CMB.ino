@@ -914,6 +914,7 @@ void scan(bool continous) {
   }
 
   if (scan_mode == 0) {
+    Set_Cmd(32, 10, 4, 0, pgm_read_word_near(FMFilterMap), 1000, 1000);  // narrowest IF filter (56 kHz) for sweep
     Set_Cmd(32, 1, 2, 2, scan_start);  // Search: mute chip for entire sweep
   } else {
     Set_Cmd(33, 10, 2, scan_filter == -1 ? 1 : 0, pgm_read_byte_near(AMFilterMap + scan_filter));
