@@ -914,6 +914,7 @@ void scan(bool continous) {
   }
 
   if (scan_mode == 0) {
+    Set_Cmd(32, 10, 4, 0, pgm_read_word_near(FMFilterMap), 1000, 1000);  // narrowest filter (56 kHz) for scan
     Set_Cmd(32, 1, 2, 2, scan_start);  // Search: mute chip for entire sweep
   } else {
     Set_Cmd(33, 10, 2, scan_filter == -1 ? 1 : 0, pgm_read_byte_near(AMFilterMap + scan_filter));
@@ -941,6 +942,8 @@ void scan(bool continous) {
     Serial.print('\n');
   } while (continous && !Serial.available());
   if (radio_mode == 0) {
+    int fw = (current_filter == -1) ? 0 : pgm_read_word_near(FMFilterMap + current_filter);
+    Set_Cmd(32, 10, 4, current_filter == -1 ? 1 : 0, fw, 1000, 1000);  // restore FM filter
     Set_Cmd(32, 1, 2, 1, REG_FREQ / 10);
   } else {
     Set_Cmd(33, 10, 2, 0, pgm_read_byte_near(AMFilterMap + current_filter));
