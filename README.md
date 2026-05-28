@@ -42,9 +42,17 @@ This fork closes the loop: a TEF6686 firmware in full protocol compliance with a
 ### FM sweep optimisation
 - **Search mode (mode=2)**: chip stays muted throughout the sweep — no mute/demute churn at each step, instant retune after first step
 - **I²C at 400 kHz** with 50 µs stop-to-start guard (per NXP TEF668X V205 spec)
-- **5 ms per-frequency settling delay** — eliminates -30 dBuV artifacts on weak/empty channels
+- **56 kHz IF filter** forced before sweep for best adjacent-channel discrimination
+- **4 ms per-frequency settling delay** — validated minimum before filter width degrades
 - 30 ms initial settle before first read
-- **Result: FM sweep 87.5–108 MHz in ~1335 ms vs ~2616 ms baseline (×2.0), validated in XDR-GTK**
+- **Result: FM sweep 87.5–108 MHz in ~1125 ms vs ~2616 ms baseline (×2.3), validated in XDR-GTK**
+
+| delay | sweep time | filter quality |
+|-------|-----------|----------------|
+| 10 ms (baseline) | ~2616 ms | — |
+| 5 ms | ~1328 ms | OK |
+| **4 ms (current)** | **~1125 ms** | **OK** |
+| 3 ms | ~917 ms | too wide |
 
 ## Hardware
 
